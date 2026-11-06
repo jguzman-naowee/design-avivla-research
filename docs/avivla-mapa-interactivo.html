@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AVIVLA · Mapa interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F4F0E6;--white:#FDFAF4;--sand:#E8DFC8;--brown:#3B2A1A;--muted:#7A6E5F;--olive:#4A5240;--olive-m:#6B7355;--gold:#C4922A;--green:#3B6B3A;--red:#A63228;--admin:#2C3E50;--person:#6B4226}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--brown);font:400 15px/1.5 Inter,system-ui,sans-serif}
+header{padding:20px 16px 0;max-width:1100px;margin:0 auto}
+h1{font:700 28px Playfair Display,serif;margin:0}
+.sub{color:var(--muted);margin:2px 0 14px}
+nav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--sand)}
+nav button{background:none;border:0;padding:10px 14px;font:500 14px Inter;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:var(--brown);border-color:var(--gold)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.tab{display:none}.tab.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.seg{display:flex;border:1px solid var(--olive-m);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;padding:7px 12px;font:500 13px Inter;color:var(--olive);cursor:pointer}
+.seg button.on{background:var(--olive);color:#fff}
+.chk{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center;cursor:pointer}
+.tlv{position:relative;max-width:760px;width:100%;margin:0 auto;padding-left:44px;min-width:0}
+.tlv *{min-width:0;overflow-wrap:anywhere}
+.bar,.seg{max-width:100%}.seg{flex-wrap:wrap}
+@media(max-width:560px){.tlv{padding-left:34px}.tlv:before{left:10px}.step .dot{left:-33px;width:16px;height:16px}.phase:before{left:-29px;width:14px}.step .n{font-size:15px}}
+.tlv:before{content:"";position:absolute;left:15px;top:8px;bottom:8px;width:3px;background:var(--sand);border-radius:2px}
+.phase{margin:26px 0 10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:relative}
+.phase:before{content:'';position:absolute;left:-37px;top:50%;width:20px;height:3px;background:var(--sand);transform:translateY(-50%)}
+.phase span{background:var(--olive);color:#fff;border-radius:99px;padding:3px 12px;font:600 12px Inter;letter-spacing:.04em;text-transform:uppercase}
+.phase em{font:italic 15px Playfair Display,serif;color:var(--muted)}
+.step{position:relative;margin:0 0 14px;transition:opacity .25s}
+.step .dot{position:absolute;left:-37px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--white);border:3px solid var(--olive);transition:all .25s}
+.step.on .dot{background:var(--gold);border-color:var(--gold);transform:scale(1.25)}
+.step.p .dot{border-color:var(--gold);border-style:dashed}.step.h .dot{border-color:var(--red);border-style:dashed}
+.step .who{display:inline-block;font:600 11px Inter;color:#fff;border-radius:99px;padding:2px 10px;margin:0 6px 4px 0}
+.step .n{font-size:16px;line-height:1.5;margin:0 0 6px}
+.note{border-left:3px solid var(--sand);background:var(--white);border-radius:0 8px 8px 0;padding:8px 12px;font-size:13px;color:var(--muted)}
+.note b{color:var(--brown)}.note ul{margin:4px 0 0;padding-left:18px}
+.note .w{color:var(--red);margin-top:4px}
+.step.p .note{border-color:var(--gold);background:#fbf3df}.step.h .note{border-color:var(--red)}
+.step.hide{display:none}
+.hidenotes .note{display:none}
+.tagk{background:#f3e3b9;color:#7a5a12}
+.card{background:var(--white);border:1px solid var(--sand);border-radius:12px;padding:16px}
+svg{width:100%;height:auto;display:block}
+#panel h2,#tpanel h2{font:600 20px Playfair Display,serif;margin:0 0 4px}
+#panel p,#tpanel p{margin:8px 0}
+.tag{display:inline-block;font:500 11px Inter;background:var(--sand);border-radius:99px;padding:2px 9px;margin:0 4px 6px 0}
+.tag.warn{background:#f3d9d5;color:var(--red)}
+.small{font-size:13px;color:var(--muted)}
+.ctrl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.btn{background:var(--olive);color:var(--white);border:0;border-radius:8px;padding:8px 14px;font:500 13px Inter;cursor:pointer}
+.sys{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.sys .c{border-radius:12px;padding:14px;color:#fff;cursor:pointer}
+.sys h3{margin:0;font:600 18px Playfair Display,serif}
+.sys .l{font-size:12px;opacity:.9;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{background:rgba(255,255,255,.22);border-radius:99px;padding:3px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--sand);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+input[type=search]{width:100%;padding:9px 12px;border:1px solid var(--sand);border-radius:8px;background:var(--white);font:inherit;margin-bottom:10px}
+.todo{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand)}
+.todo input{margin-top:4px;accent-color:var(--olive)}
+.todo.done span{text-decoration:line-through;color:var(--muted)}
+
+.eq td:first-child{font-weight:600;white-space:nowrap}
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.stages>div{border:1px solid var(--sand);border-radius:10px;padding:12px;background:var(--white)}
+.stages b{display:block;font:600 15px Playfair Display,serif;margin-bottom:4px}
+.mp{border:1px solid var(--sand);border-radius:12px;padding:16px;background:var(--white);max-width:520px}
+.mp h4{margin:12px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.mp .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--sand);font-size:14px}
+.pill{border-radius:99px;padding:2px 10px;font-size:12px;color:#fff;white-space:nowrap}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
+</style>
+</head>
+<body>
+<header>
+  <h1>AVIVLA · Aceleradora de Dignidad</h1>
+  <p class="sub">Mapa interactivo del proyecto. Sketch del 3-nov con términos nivelados. 🚧 En desarrollo.</p>
+  <nav id="nav">
+    <button data-t="mapa" class="on">Mapa del sistema</button>
+    <button data-t="arbol">Árbol</button>
+    <button data-t="gen">Modelo genérico</button>
+    <button data-t="vida">Mapa de Vida</button>
+    <button data-t="glos">Glosario</button>
+    <button data-t="pend">Pendientes</button>
+  </nav>
+</header>
+<main>
+
+<section id="mapa" class="tab on">
+  <div class="bar">
+    <div class="seg" id="seg"><button data-f="all" class="on">Todo</button><button data-f="mig">Lo que vive el migrante</button><button data-f="prop">Propuestas</button><button data-f="gap">Huecos por confirmar</button></div>
+    <label class="chk"><input type="checkbox" id="nt" checked> Notas técnicas</label>
+    <span class="small" id="cnt"></span>
+  </div>
+  <div class="tlv" id="tl"></div>
+</section>
+
+<section id="arbol" class="tab">
+  <div class="grid">
+    <div class="card" style="overflow-x:auto"><svg id="tree" style="min-width:1500px" role="img" aria-label="Árbol invertido de AVIVLA"></svg>
+      <div class="leg" style="display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin-top:8px"><span>▬ continuo: sigue el orden del proceso</span><span style="color:#C4922A">┄ dorado: dónde se conectan las ramas</span><span style="color:#C4922A">▭ punteado dorado: propuesta de producto (no está en los docs)</span></div>
+    </div>
+    <aside class="card" id="tpanel"></aside>
+  </div>
+</section>
+
+<section id="gen" class="tab">
+  <div class="card">
+    <span class="tag" style="background:#f3e3b9">Propuesta, no está en los docs</span>
+    <p>Para que AVIVLA sirva a cualquier entidad que comparta <b>programas, beneficios o subsidios</b> (ciudadanos, migrantes, artistas, deportistas) conviene separar un <b>núcleo genérico</b> de lo que es <b>configuración de cada vertical</b>. Lo de migrantes (Mapa de Vida, Principios de DH, situación documental) pasa a ser una configuración, no el modelo.</p>
+    <table class="eq"><thead><tr><th>Concepto genérico</th><th>En AVIVLA hoy</th><th>En otras verticales</th></tr></thead><tbody>
+      <tr><td>Persona</td><td>Beneficiario</td><td>Ciudadano, artista, deportista</td></tr>
+      <tr><td>Caso</td><td>Expediente (nº AVIVLA)</td><td>Ficha de una persona en un programa. Una persona puede tener varios casos</td></tr>
+      <tr><td>Gestor (opcional)</td><td>Conector</td><td>Tutor, agente, técnico. Un rol, no un requisito</td></tr>
+      <tr><td>Organización</td><td>Entidad</td><td>Federación, ayuntamiento, fundación</td></tr>
+      <tr><td>Programa / oferta</td><td>Recurso (grupo, evento, librería)</td><td>Beca, ayuda, convocatoria, curso</td></tr>
+      <tr><td>Reglas de elegibilidad</td><td>Requisitos de acceso (texto)</td><td>Reglas estructuradas y nivel de prueba exigido</td></tr>
+      <tr><td>Evaluación</td><td>Mapa de Vida</td><td>Ficha deportiva, portafolio artístico</td></tr>
+      <tr><td>Solicitud → Decisión → Participación → Cierre</td><td>R/A (propuesta) y seguimiento</td><td>Igual; la decisión puede ser comparativa</td></tr>
+      <tr><td>Consentimiento por finalidad</td><td>LOPD + «comunicación con entidades»</td><td>Un consentimiento por cada uso de los datos</td></tr>
+      <tr><td>Registro de acceso</td><td>Trazabilidad (07)</td><td>Quién vio qué y cuándo, visible para la persona</td></tr>
+    </tbody></table>
+  </div>
+  <div class="mgrid" style="margin-top:16px">
+    <div class="card">
+      <h3 style="margin-top:0">Modo de acceso, por recurso</h3>
+      <table><tbody>
+        <tr><td><b>Libre</b></td><td>Se consume sin registro (librería, comedor sin reserva)</td></tr>
+        <tr><td><b>Inscripción</b></td><td>Se registra y hay cupo, sin decisión</td></tr>
+        <tr><td><b>Solicitud con decisión</b></td><td>La entidad aprueba, rechaza (motivo) o pone en espera</td></tr>
+        <tr><td><b>Externo</b></td><td>Lo decide alguien fuera de la red (IMV, SEPE, juzgado). El gestor acompaña y registra el resultado</td></tr>
+      </tbody></table>
+      <p class="small">No todo grupo o evento exige aprobación: un comedor sin reserva ni requisitos es de acceso libre.</p>
+    </div>
+    <div class="mp" role="img" aria-label="Maqueta de la vista Mis programas">
+      <b style="font:600 17px Playfair Display,serif">Mis programas</b>
+      <div class="small">Persona de ejemplo · nº AVIVLA 000123</div>
+      <h4>Activos</h4>
+      <div class="row"><span>Grupo de apoyo jurídico</span><span class="pill" style="background:#3B6B3A">Activa</span></div>
+      <h4>En trámite</h4>
+      <div class="row"><span>Curso de español</span><span class="pill" style="background:#C4922A">Pendiente</span></div>
+      <div class="row"><span>Ingreso Mínimo Vital</span><span class="pill" style="background:#7A6E5F">Externo</span></div>
+      <h4>Puedes acceder a</h4>
+      <div class="row"><span>Banco de alimentos</span><span class="small">cumples los requisitos</span></div>
+      <h4>Tus datos</h4>
+      <div class="row"><span>Quién los vio</span><span class="small">ver registro</span></div>
+      <div class="row"><span>Mis consentimientos</span><span class="small">gestionar</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3 style="margin-top:0">Camino por etapas</h3>
+    <div class="stages">
+      <div><b>1 · Dentro del MVP</b>Registro asistido por el conector, Persona separada del Caso en el modelo de datos, modo de acceso por recurso, solicitud registrada por el conector. Sin panel de entidad.</div>
+      <div><b>2 · Después</b>Bandeja de la entidad y consentimiento por finalidad.</div>
+      <div><b>3 · Luego</b>Portal del ciudadano: «Mis programas».</div>
+      <div><b>4 · Al final</b>Convocatorias competitivas y pagos.</div>
+    </div>
+    <p class="small"><b>Dónde se rompe el modelo:</b> convocatorias competitivas (se decide comparando a todos), ayudas económicas (pago y justificación) y menores (consiente el tutor). Se pueden aplazar.</p>
+    <p class="small"><b>Riesgos a validar con legal:</b> consentimiento por finalidad, categorías especiales (salud, violencia, origen), evaluación de impacto (EIPD), corresponsables y encargados, y el caso protegido.</p>
+  </div>
+</section>
+
+<section id="vida" class="tab">
+  <div class="card">
+    <p style="margin-top:0">El <b>Mapa de Vida</b> es la entrevista de diagnóstico del Conector. Esta es la versión de la herramienta (04, 4 sistemas). Los docs tienen <b>3 versiones</b> del diagnóstico; por el 11, que alinea las dimensiones una a una con el 03, lo más probable es que valgan las <b>16 dimensiones</b> (03, 08, 10, 11). Cada <b>sistema</b> queda <b style="color:var(--green)">estable</b>, <b style="color:#b9770e">en proceso</b> o <b style="color:var(--red)">necesita apoyo</b>. La herramienta trae un modo autoservicio y una solicitud a la entidad, pero fuera de la plataforma. Fuente: <code>04-avivla_mapa_vida.md</code>.</p>
+    <div class="sys" id="sys"></div>
+    <p class="small" id="sysnote">Clic en un sistema para ver qué pregunta del cuestionario lo cubre.</p>
+  </div>
+</section>
+
+<section id="glos" class="tab">
+  <div class="card">
+    <input type="search" id="q" placeholder="Buscar término…">
+    <table><thead><tr><th>Sketch</th><th>Término AVIVLA</th><th>Término genérico</th><th>Significado</th></tr></thead><tbody id="gl"></tbody></table>
+  </div>
+</section>
+
+<section id="pend" class="tab">
+  <div class="card"><p style="margin-top:0">Decisiones abiertas del sketch. Marca las que vayas cerrando (solo en esta pestaña, no se guarda).</p><div id="td"></div></div>
+</section>
+
+</main>
+<script>
+const A={admin:['Administrador','#2C3E50'],con:['Conector','#4A5240'],ben:['Beneficiario','#6B4226'],sis:['Sistema','#3B6B3A'],ent:['Entidad','#6B7355']};
+const PH=[['Antes de que llegue nadie','Se prepara la plataforma'],['La persona llega y se registra','Siempre de la mano del conector'],['Entender su situación','El Mapa de Vida'],['Armar su ruta','Qué recursos recibe'],['Acompañamiento','Seguimiento de la ruta'],['Cierre','Medir si recuperó su autonomía']];
+/* k: f = respaldado por docs, k = solo sketch, h = hueco. mig = lo vive el migrante */
+const S=[
+{p:0,a:['admin'],k:'f',n:'El Administrador prepara la plataforma: da de alta a las entidades aliadas y define qué recursos ofrece cada una (grupos, eventos o contenido de librería).',t:['Registra la entidad (RF-01) y define categorías y recursos (RF-05).','El sistema publica el catálogo. Modelo centrado en el recurso: la persona ve el recurso, no la entidad.'],src:'07 · 1.1–1.2 · 05 · 12'},
+{p:0,a:['admin'],k:'f',n:'También crea a los conectores, las personas que atenderán a los migrantes, y los asocia a su entidad.',t:['Crea credenciales de acceso (RF-02).'],w:'07 dice que el conector tiene una entidad; el 05 dice una o más.',src:'07 · 1.3 · 05'},
+{p:0,a:['ent'],k:'h',n:'Las entidades son las aportantes: cada una, por distrito, monta los recursos que ofrece.',t:['Así lo anota el sketch. Decidido: la entidad tiene bandeja propia desde el MVP (los docs 05 y 07 no la contemplan).','El doc 09 describe un autorregistro de la entidad desde la landing; podría ser fase futura.'],w:'Decidido: la entidad se registra siempre antes de dar de alta a una persona.',src:'Sketch · 09 · 12'},
+{p:1,a:['ben'],k:'f',mig:1,n:'Una persona migrante llega: la derivó otra entidad, contactó directamente al conector o entró por la landing.',t:['Tres vías de entrada.'],src:'08 · paso 1'},
+{p:1,a:['con'],k:'f',mig:1,n:'El conector le explica qué es AVIVLA y le pide su consentimiento para tratar sus datos. Si no lo da, el proceso se detiene ahí y no se guarda nada.',t:['LOPD obligatoria antes de cualquier registro (gateway «¿Consiente?» del BPMN).','Obligatorios: política de privacidad y tratamiento de datos. Opcionales: comunicación con entidades y comunicaciones del expediente.'],src:'06 · 08 paso 2 · 03'},
+{p:1,a:['sis'],k:'f',n:'Con el consentimiento, el sistema abre el expediente de la persona.',t:['Número único AVIVLA, fecha de alta, entidad que da el alta, conector asignado.','Estado: Abierto.'],src:'08 · paso 2 · 03'},
+{p:1,a:['con'],k:'f',mig:1,n:'El conector registra el perfil básico: quién es, dónde vive (solo municipio y código postal) y si tiene documentos.',t:['En el MVP la persona no usa la plataforma: lo registra el conector (05 §1.2).','Idioma y canal de contacto preferido. No se pide dirección exacta.'],w:'«Núcleo familiar» está en 05 y 07 pero no en el formulario 03 ni en el 08.',src:'08 · paso 3 · 07 · 03'},
+{p:2,a:['con','ben'],k:'f',mig:1,n:'El conector hace la entrevista del Mapa de Vida y la persona cuenta su situación: vivienda, ingresos, salud, documentación, empleo…',t:['El conector guía; la persona responde, no opera.'],w:'Los docs tienen 3 versiones del diagnóstico: 6 dimensiones (05, 06, 07), 16 en 4 bloques con semáforo (03, 08, 10) y 4 sistemas (04). Decidido: base de 16 dimensiones; los 4 sistemas solo agrupan al mostrarlas.',src:'07 · 2.3 · 06 · 08 paso 4'},
+{p:2,a:['sis'],k:'f',n:'El sistema guarda el diagnóstico en el expediente. Es la base para asignar recursos.',t:['Cada respuesta en rojo activa la búsqueda de recursos urgentes.'],src:'07 · 2.3 · 08'},
+{p:3,a:['sis'],k:'f',n:'Con el diagnóstico, el sistema sugiere los recursos del catálogo que responden a lo que la persona necesita.',t:['Muestra categoría, subcategoría, entidad, cobertura y requisitos de acceso.'],w:'No está escrita la regla de correspondencia (¿cuentan los amarillos?).',src:'07 · 3.1 · 08 paso 5'},
+{p:3,a:['con'],k:'f',mig:1,n:'El conector revisa las sugerencias y decide cuáles asignar: arma el itinerario de la persona con grupos, eventos y contenido de librería.',t:['La asignación la decide el conector.','Una misma persona puede estar en varios grupos según sus necesidades.'],src:'07 · 3.2 · 06 · 05 RF-06'},
+{p:3,a:['ben'],k:'f',mig:1,n:'La persona conoce su ruta y puede hacer observaciones antes de que se confirme.',t:['Observaciones antes de la confirmación final (tooltip del BPMN).'],w:'No está escrito por qué canal se le informa si no tiene cuenta.',src:'07 · 3.2 · 06'},
+{p:3,a:['con'],k:'f',n:'Si necesita algo que ofrece otra entidad, el conector gestiona la derivación para que no la manden de ventanilla en ventanilla.',t:['El sistema registra la derivación con trazabilidad.'],w:'Los docs no dicen si la entidad que recibe puede aceptar o rechazar.',src:'06 · 07 · 4.2'},
+{p:3,a:['ben','ent'],k:'p',mig:1,n:'Cuando la persona quiere participar en un recurso que exige solicitud, el conector la postula y la entidad dueña del recurso lo revisa dentro de la plataforma: lo aprueba, lo rechaza (con motivo) o la deja en lista de espera.',t:['Decisión de producto (propuesta): decide la entidad dueña del recurso y todo ocurre en la plataforma; la entidad tiene una bandeja de solicitudes.','Estados MVP: Pendiente → Aprobada · Rechazada (motivo obligatorio) · En lista de espera. Después: Falta información, Retirada, Vencida.','Rechazada o vencida: se avisa al conector, que reasigna otro recurso. El modo de acceso debería definirse por recurso: libre, inscripción, solicitud con decisión o externo (ver pestaña Modelo genérico).','Se apoya en atributos que ya existen: requisitos de acceso y capacidad (05, 08, 09) y la lista de espera del 04.'],w:'Cambia el alcance: el MVP del 05 y el 07 no da panel a la entidad. Hay que validarlo con el equipo.',src:'Sketch + propuesta de producto · 05 · 08 · 09 · 04'},
+{p:3,a:['ent'],k:'p',n:'Para decidir, la entidad ve de la persona solo lo necesario: sus datos de contacto básicos, las necesidades que tocan ese recurso y los documentos que aportó. No ve su diagnóstico completo ni lo que otras entidades le han dado.',t:['Propuesta: ficha mínima de solicitud para la entidad que recibe la postulación.','Las demás entidades no ven a la persona. Solo ven una ficha ampliada (su itinerario, sin detalle del diagnóstico) si la persona dio el consentimiento opcional «comunicación con entidades colaboradoras» (03 · 6.3, 08).','Datos sensibles (documentación, violencia, salud) solo con autorización expresa por campo. Todo acceso queda registrado: quién vio qué y cuándo.'],w:'Hay que validarlo con el equipo legal: el 05 (RNF-01) dice que están asesorando sobre LOPD.',src:'Propuesta · 03 · 08 · 05 RNF-01 · 07 trazabilidad'},
+{p:3,a:['sis'],k:'f',n:'Se activa el itinerario y el expediente pasa a «en seguimiento».',t:['Vincula a la persona con los grupos, eventos y recursos asignados.'],src:'06 · 07 3.2 · 08'},
+{p:4,a:['ben'],k:'f',mig:1,n:'La persona usa el recurso: va a las sesiones del grupo, asiste al evento o consulta el contenido de la librería.',t:['Grupos: participación continuada con asistencia regular. Eventos: fecha y lugar puntuales. Librería: consumo libre, sin inscripción (05).'],src:'07 · 4.1 · 05'},
+{p:4,a:['ent'],k:'p',n:'La entidad dueña del recurso registra la asistencia y el avance de cada persona, desde su bandeja. Cuando termina, marca si lo completó, lo abandonó o quedó suspendido por inasistencia.',t:['Propuesta: estados de participación Activa → Completada · Abandonada · Suspendida.','Resuelve un hueco de los docs: ¿quién registra la asistencia y el progreso? (07 solo dice que «queda registrado»).','Se guardan fecha de inicio y fin, asistencia y una nota breve de cierre.'],w:'Propuesta por validar: la entidad tendría que registrar asistencia en la plataforma.',src:'Propuesta · 07 · 4.1'},
+{p:4,a:['con'],k:'f',mig:1,n:'El conector ve el avance de la persona en todos sus recursos y ajusta la ruta. El sistema le avisa si hay inactividad o si algo cambia en un recurso.',t:['Alertas de eventos próximos, cambios de disponibilidad e inactividad (07 · 4.1).','Reportes de impacto para el Administrador (05 §4.6).','Cuando un recurso se completa, alimenta el cierre del itinerario.'],src:'07 · 4.1–4.2 · 05 RF-07'},
+{p:5,a:['con','ben'],k:'f',mig:1,n:'Cuando la persona alcanza su autonomía (empleo, vivienda estable, papeles en regla), el conector cierra el expediente.',t:['El sistema guarda el resultado.'],w:'No está escrito qué cuenta como «autonomía definida» ni quién la define.',src:'07 · 5.1'},
+{p:5,a:['admin'],k:'f',n:'Con esos cierres, el Administrador mide el impacto: no cuántos expedientes se abrieron, sino cuánto tardó cada persona en recuperar su autonomía.',t:['Reportes de dependencia reducida, itinerarios completados y retorno social (05 §4.6).'],src:'07 · 5.1 · 02'}
+];
+const tl=document.getElementById('tl');let last=-1;const els=[];
+S.forEach((x,i)=>{if(x.p!==last){last=x.p;const h=document.createElement('div');h.className='phase';h.dataset.p=x.p;h.innerHTML=`<span>Fase ${x.p}</span><em>${PH[x.p][0]} · ${PH[x.p][1]}</em>`;tl.appendChild(h)}
+ const d=document.createElement('div');d.className='step '+(x.k==='f'?'':x.k)+(x.w&&x.k==='f'?' w':'');d.dataset.p=x.p;
+ d.innerHTML=`<div class="dot"></div>${x.a.map(a=>`<span class="who" style="background:${A[a][1]}">${A[a][0]}</span>`).join('')}${x.k==='p'?'<span class="who tagk">Propuesta</span>':''}${x.k==='h'?'<span class="who" style="background:#A63228">Por confirmar</span>':''}<p class="n">${x.n}</p>
+ <div class="note"><b>Nota técnica</b><ul>${x.t.map(t=>`<li>${t}</li>`).join('')}</ul>${x.w?`<div class="w">⚠ ${x.w}</div>`:''}<div><b>Fuente:</b> ${x.src}</div></div>`;
+ tl.appendChild(d);els.push([d,x])});
+function filt(f){document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+ let n=0;els.forEach(([d,x])=>{const show=f==='all'||(f==='mig'&&x.mig)||(f==='prop'&&x.k==='p')||(f==='gap'&&(x.k==='h'||x.w));d.classList.toggle('hide',!show);if(show)n++});
+ document.querySelectorAll('.phase').forEach(h=>{h.style.display=els.some(([d,x])=>x.p==h.dataset.p&&!d.classList.contains('hide'))?'':'none'});
+ document.getElementById('cnt').textContent=n+' de '+S.length+' pasos'}
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>filt(b.dataset.f));
+document.getElementById('nt').onchange=e=>tl.classList.toggle('hidenotes',!e.target.checked);
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){els.forEach(([d])=>d.classList.remove('on'));e.target.classList.add('on')}}),{rootMargin:'-40% 0px -50% 0px'});
+els.forEach(([d])=>io.observe(d));filt('all');
+
+/* Mapa de Vida */
+const SYS=[
+ ['Económico','Trabajo · Recursos · Propósito','#C98512',['Trabajo','Alimentos','Recursos','Deudas','Propósito','Dones','Formación'],'¿Tienes trabajo o alguna fuente de ingresos? · ¿Puedes cubrir tus necesidades básicas?'],
+ ['Social','Vivienda · Salud · Entorno','#1D9E75',['Vivienda','Barrio','Educación','Entorno','Salud','Movilidad'],'¿Tienes un lugar seguro y estable donde vivir? · ¿Puedes ir al médico cuando lo necesitas?'],
+ ['Relacional','Familia · Comunidad · Vínculos','#C2456F',['Familia','Comunidad','Relaciones','Vínculos','Violencia dom.','Aislamiento'],'¿Tienes personas cercanas con quienes contar?'],
+ ['Legal','Dignidad · Derechos · Documentación','#2F7BC7',['Dignidad','Valor personal','Insignificancia','Litigios','Violencia','Documentación','Derechos'],'Documentación, derechos y dignidad.']];
+const sysEl=document.getElementById('sys');
+SYS.forEach(([n,l,c,ch,q])=>{const d=document.createElement('div');d.className='c';d.style.background=c;d.innerHTML=`<h3>${n}</h3><div class="l">${l}</div><div class="chips">${ch.map(x=>`<span>${x}</span>`).join('')}</div>`;
+ d.onclick=()=>document.getElementById('sysnote').innerHTML=`<b>${n}:</b> ${q}`;sysEl.appendChild(d)});
+
+/* Glosario */
+const G=[['Admins Públicos','Administrador','Gestiona entidades, recursos y conectores'],['Entidades / Distrito','Entidad','Organización aliada; contenedor de recursos'],['Servicios','Recurso','Lo que el beneficiario ve y recibe'],['Fijos / Ofertas','Vigencia del recurso','Fijo: beneficio permanente. Oferta: temporal. Ambos pueden tener límites. Es un eje aparte del tipo (grupo, evento, librería)'],['Migrante','Beneficiario','Persona inmigrante con necesidades'],['Perfilarlo','Mapa de Vida','Entrevista de diagnóstico (3 versiones en los docs; probable vigente: 16 dimensiones)'],['Relacionarse','Conectar','Vincular con recursos y entidades'],['Aplicar a servicios','Solicitud al recurso (R/A)','El conector postula; la entidad dueña aprueba, rechaza o pone en lista de espera, dentro de la plataforma (propuesta; el sketch solo dice «aplicar a servicios»)'],['R/A','Rechazado / Aprobado','Resultado de la aplicación; por definir'],['(no aparece)','Conector','Puerta de entrada: opera todo el proceso del beneficiario'],['Principios DH','Principios de DH (derechos)','Los derechos que ordenan lo que ofrecen las entidades: vivienda, ingresos, alimentación, salud, educación… Son las categorías del catálogo (11)'],['APP | WEB | DB','Superficies','Qué actor usa app, web o ambas, sobre una base de datos común (por asignar)']];
+const GEN={"Administrador": "Administrador de la plataforma", "Entidad": "Organización", "Recurso": "Programa / oferta", "Vigencia del recurso": "Vigencia del programa (permanente o temporal)", "Beneficiario": "Persona", "Mapa de Vida": "Evaluación", "Conectar": "Vincular persona con programas", "Solicitud al recurso (R/A)": "Solicitud → Decisión", "Rechazado / Aprobado": "Decisión", "Conector": "Gestor de caso (opcional)", "Principios de DH (derechos)": "Taxonomía de derechos de la vertical", "Superficies": "Superficies (canales)"};
+const gl=document.getElementById('gl'),q=document.getElementById('q');
+function rg(){const v=q.value.toLowerCase();gl.innerHTML=G.filter(r=>(r.join(' ')+(GEN[r[1]]||'')).toLowerCase().includes(v)).map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${GEN[r[1]]||'—'}</td><td>${r[2]}</td></tr>`).join('')}
+q.oninput=rg;rg();
+
+/* Pendientes */
+const T=[   "Validar con legal: consentimiento por finalidad, categorías especiales (salud, violencia, origen) y qué ve una entidad sin consentimiento. Bloquea el MVP porque la entidad ya ve datos",  "Definir qué ve la bandeja de la entidad (ficha mínima, asistencia)","Confirmar los límites de fijos y ofertas (cupo, requisitos, territorio, máximo por persona, fechas, plazo)", "Asignar cada superficie: qué actor usa app, web o ambas (propuesta en el 01)", "Caso protegido (víctimas de violencia): aviso por canal compartido y asociación de familiares", "Cómo ejerce sus derechos de acceso una persona sin cuenta (resumen de su ruta por su canal preferido)"];
+document.getElementById('td').innerHTML=T.map(t=>`<label class="todo"><input type="checkbox"><span>${t}</span></label>`).join('');
+document.querySelectorAll('.todo input').forEach(c=>c.onchange=()=>c.parentElement.classList.toggle('done',c.checked));
+
+/* Tabs */
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id===b.dataset.t))});
+
+/* Árbol invertido */
+const TC={mig:'#6B4226',con:'#4A5240',ofe:'#2C3E50',sis:'#3B6B3A',root:'#3B2A1A'};
+const TR={id:'root',t:'AVIVLA',c:'root',d:'AVIVLA conecta a una persona migrante con los recursos que necesita. Lo hace a través de un conector, sobre una oferta que arman las entidades. Todo bajo los Principios de DH: los derechos (vivienda, salud, alimentación…) que ordenan lo que ofrecen las entidades.',src:'02 · 07 · sketch',ch:[
+ {id:'m',t:'El migrante (antes de llegar)',c:'mig',d:'Personas inmigrantes en España con necesidades distintas. Hoy el sistema social las atiende en fragmentos, sin una visión completa de cada caso.',src:'Sketch · 02',ch:[
+  {id:'m2',t:'Llega',c:'mig',d:'Hay tres formas de llegar a AVIVLA. En todas, el primer contacto es con un conector.',src:'08 · paso 1',ch:[
+   {id:'m21',t:'Derivado por una entidad',c:'mig',d:'Otra organización lo envía.',src:'08'},
+   {id:'m22',t:'Contacta al conector',c:'mig',d:'Se acerca directamente a la persona conectora.',src:'08'},
+   {id:'m23',t:'Entra por la landing',c:'mig',d:'Llega por la página web.',src:'08'}]}]},
+ {id:'c',t:'El Conector (puente)',c:'con',d:'Es la puerta de entrada. En el MVP el migrante no usa la plataforma: el conector lo atiende y opera todo su proceso.',src:'07 · 08 · 12',ch:[
+  {id:'c1',t:'Consentimiento LOPD',c:'con',d:'Antes de guardar cualquier dato pide consentimiento. Sin él, el proceso se detiene.',src:'06 · 08 paso 2',ch:[
+  {id:'c2',t:'Registra su perfil',c:'con',d:'Quién es, dónde vive (solo municipio y código postal) y si tiene documentos. El sistema abre el expediente.',src:'08 · paso 3',ch:[
+  {id:'c3',t:'Mapa de Vida',c:'con',d:'Entrevista de diagnóstico: el conector pregunta, la persona cuenta su situación. Ojo: los docs tienen 3 versiones del diagnóstico.',src:'07 · 2.3 · 04 · 03',ch:[
+  {id:'c4',t:'Sistema sugiere recursos',c:'sis',d:'Según el diagnóstico, el sistema propone recursos del catálogo.',src:'07 · 3.1',ch:[
+  {id:'c5',t:'Asigna el itinerario',c:'con',d:'El conector revisa las sugerencias y arma la ruta de la persona.',src:'07 · 3.2',ch:[
+   {id:'c61',t:'Derivación a otra entidad',c:'con',d:'Si necesita algo que ofrece otra entidad, el conector lo gestiona y el sistema deja trazabilidad. No está escrito si la entidad puede rechazarla.',src:'06 · 07 4.2'},
+   {id:'c62',t:'Aplica a un grupo o evento',c:'con',k:'p',d:'Cuando la persona quiere participar, el conector la postula y la entidad dueña del recurso decide dentro de la plataforma (propuesta de producto). Si rechazan o vence, el conector reasigna.',src:'Sketch + propuesta · 05 · 08 · 09 · 04',ch:[
+   {id:'e1',t:'Aprobada',c:'ofe',d:'Se le asigna el cupo y el conector activa el itinerario.',src:'Propuesta',ch:[
+    {id:'u1',t:'Usa el recurso',c:'ofe',k:'p',d:'La persona asiste. La entidad dueña registra asistencia y avance. Al terminar marca: Completada, Abandonada o Suspendida (propuesta). Esto alimenta el seguimiento del conector.',src:'Propuesta · 07 4.1'}]},
+   {id:'e2',t:'Rechazada (motivo)',c:'ofe',k:'p',d:'La entidad indica el motivo (no cumple requisitos, sin capacidad u otro). Se avisa al conector, que reasigna o deriva.',src:'Propuesta'},
+   {id:'e3',t:'En lista de espera',c:'ofe',d:'Cumple los requisitos, pero no hay cupo. Pasa a Aprobada cuando se libera.',src:'Propuesta · 04'}]},
+   {id:'c63',t:'Activa itinerario',c:'sis',d:'Queda «en seguimiento».',src:'06 · 08',ch:[
+   {id:'c7',t:'Seguimiento',c:'con',d:'La persona participa en lo asignado; el conector monitorea y ajusta.',src:'07 · 4.1',ch:[
+   {id:'c8',t:'Cierre: autonomía',c:'con',d:'Cuando la persona recupera su autonomía, el conector cierra el expediente.',src:'07 · 5.1'}]}]}]}]}]}]}]}]},
+ {id:'o',t:'La oferta',c:'ofe',d:'Lo que se prepara antes de que llegue nadie. El modelo está centrado en el recurso: la persona ve el recurso, no la entidad.',src:'07 · 12',ch:[
+  {id:'o1',t:'Administrador',c:'ofe',d:'Configura el ecosistema: entidades, recursos y conectores.',src:'07 · Fase 1',ch:[
+   {id:'o2',t:'Entidades',c:'ofe',d:'Organizaciones aliadas, por entidad y distrito (sketch). Son aportantes: montan recursos. En el MVP no tienen panel.',src:'Sketch · 07 · 09',ch:[
+    {id:'o3',t:'Recursos',c:'ofe',d:'Lo que recibe la persona. En el sketch: fijos u ofertas; en los docs: grupos, eventos o librería.',src:'12 · 05',ch:[
+     {id:'o31',t:'Grupos',c:'ofe',d:'Ej.: comedores sociales, grupos de apoyo.',src:'12'},
+     {id:'o32',t:'Eventos',c:'ofe',d:'Ej.: charlas de extranjería.',src:'12'},
+     {id:'o33',t:'Librería',c:'ofe',d:'Cursos, explicaciones y contactos de profesionales (informativo).',src:'12'}]},
+    {id:'v',t:'Qué ve del migrante',c:'ofe',k:'p',d:'Cada entidad ve solo lo necesario, según su relación con la persona y su consentimiento. Todo acceso queda registrado. Propuesta de producto; validar con el equipo legal (LOPD).',src:'Propuesta · 03 · 08 · 05',ch:[
+     {id:'v1',t:'Si la persona aplicó',c:'ofe',k:'p',d:'La entidad que recibe la postulación ve una ficha mínima: contacto básico, necesidades relevantes para ese recurso y documentos aportados. No ve el diagnóstico completo.',src:'Propuesta'},
+     {id:'v2',t:'Si participa',c:'ofe',k:'p',d:'Además ve su propio historial con esa persona (asistencia, notas). Las notas internas de cada entidad son privadas para esa entidad.',src:'Propuesta'},
+     {id:'v3',t:'Otras entidades',c:'ofe',k:'p',d:'No ven nada, salvo que la persona haya dado el consentimiento opcional de comunicación con entidades colaboradoras: entonces ven una ficha ampliada (su itinerario, sin el detalle del diagnóstico). Datos sensibles solo con autorización expresa.',src:'Propuesta · 03 6.3 · 08'}]}]},
+   {id:'o4',t:'Conectores',c:'ofe',d:'El Administrador los crea y los asocia a su entidad.',src:'07 · 1.3'}]}]}]};
+const LINKS=[['u1','c7','alimenta'],['m2','c1','se encuentran'],['c5','o3','conecta'],['o4','c','crea']];
+const tsvg=document.getElementById('tree'),tpanel=document.getElementById('tpanel'),TN={};
+const XG=106,YG=88,NW=98,NH=46;let leaf=0;
+(function lay(n,d,par){n.par=par;n.y=d*YG+50;TN[n.id]=n;if(!n.ch){n.x=leaf*XG+NW/2+10;leaf++}else{n.ch.forEach(c=>lay(c,d+1,n));n.x=(n.ch[0].x+n.ch[n.ch.length-1].x)/2}})(TR,0,null);
+const maxY=Math.max(...Object.values(TN).map(n=>n.y))+NH+30;
+tsvg.setAttribute('viewBox',`0 0 ${leaf*XG+20} ${maxY}`);
+const te=(n,a,p=tsvg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',n);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const tedges=[];
+Object.values(TN).forEach(n=>{if(n.par){const a=n.par,my=(a.y+NH+n.y)/2;const e=te('path',{d:`M${a.x} ${a.y+NH} V${my} H${n.x} V${n.y}`,fill:'none',stroke:'#B9AE92','stroke-width':2});tedges.push([e,n.id,a.id])}});
+const tlinks=LINKS.map(([a,b,l])=>{const A=TN[a],B=TN[b];const x1=A.x,y1=A.y+NH/2,x2=B.x,y2=B.y+NH/2;const sx=x2>x1?A.x+NW/2:A.x-NW/2,ex=x2>x1?B.x-NW/2:B.x+NW/2;
+ const e=te('path',{d:`M${sx} ${y1} C${sx+(ex-sx)/2} ${y1},${sx+(ex-sx)/2} ${y2},${ex} ${y2}`,fill:'none',stroke:'#C4922A','stroke-width':2.5,'stroke-dasharray':'6 5'});
+ const t=te('text',{x:(sx+ex)/2,y:(y1+y2)/2-6,'text-anchor':'middle','font-size':11,fill:'#8a6410','font-weight':600});t.textContent=l;return [e,t,a,b]});
+const tg={};
+Object.values(TN).forEach(n=>{const g=te('g',{style:'cursor:pointer',tabindex:0,role:'button'});
+ const r=te('rect',{x:n.x-NW/2,y:n.y,width:NW,height:NH,rx:10,fill:TC[n.c],stroke:n.k==='p'?'#C4922A':'#fff','stroke-width':n.k==='p'?3:2,'stroke-dasharray':n.k==='p'?'5 3':''},g);
+ const words=n.t.split(' ');let l1='',l2='';words.forEach(w=>{if((l1+' '+w).trim().length<=14&&!l2)l1=(l1+' '+w).trim();else l2=(l2+' '+w).trim()});
+ const t=te('text',{x:n.x,y:n.y+(l2?20:28),'text-anchor':'middle',fill:'#fff','font-size':n.id==='root'?14:11.5,'font-weight':600},g);t.textContent=l1;
+ if(l2){const t2=te('text',{x:n.x,y:n.y+35,'text-anchor':'middle',fill:'#fff','font-size':11.5,'font-weight':600},g);t2.textContent=l2}
+ g.onclick=()=>pickT(n.id);g.onkeydown=e=>{if(e.key==='Enter')pickT(n.id)};tg[n.id]=g});
+const dh=te('text',{x:TN.root.x,y:TN.root.y-10,'text-anchor':'middle','font-size':11,fill:'#7A6E5F'});dh.textContent='bajo los Principios de DH';
+function pickT(id){const path=new Set();let n=TN[id];while(n){path.add(n.id);n=n.par}
+ Object.keys(tg).forEach(k=>tg[k].style.opacity=path.has(k)||TN[k].par&&TN[k].par.id===id?1:.3);
+ tedges.forEach(([e,c,p])=>{const on=path.has(c);e.style.opacity=on?1:.2;e.setAttribute('stroke',on?'#6B4226':'#B9AE92')});
+ tlinks.forEach(([e,t,a,b])=>{const on=a===id||b===id;e.style.opacity=on?1:.35;t.style.opacity=on?1:.35});
+ const x=TN[id],trail=[];let m=x;while(m){trail.unshift(m.t);m=m.par}
+ const lk=LINKS.filter(l=>l[0]===id||l[1]===id).map(l=>`<li><b>${l[2]}</b>: ${TN[l[0]].t} ↔ ${TN[l[1]].t}</li>`).join('');
+ tpanel.innerHTML=`<h2>${x.t}</h2>${x.k==='p'?'<span class="tag" style="background:#f3e3b9">Propuesta de producto</span>':''}<p>${x.d}</p><p class="small"><b>Camino:</b> ${trail.join(' › ')}</p><p class="small"><b>Fuente:</b> ${x.src}</p>${lk?`<p class="small"><b>Se conecta con:</b></p><ul class="small" style="margin:0;padding-left:18px">${lk}</ul>`:''}`}
+function allT(){Object.keys(tg).forEach(k=>tg[k].style.opacity=1);tedges.forEach(([e])=>{e.style.opacity=1;e.setAttribute('stroke','#B9AE92')});tlinks.forEach(([e,t])=>{e.style.opacity=1;t.style.opacity=1});
+ tpanel.innerHTML='<h2>Cómo se conecta todo</h2><p>Tres ramas bajan de AVIVLA: <b>el migrante</b> (de dónde viene y cómo llega), <b>el conector</b> (el proceso que lo atiende) y <b>la oferta</b> (lo que arman las entidades).</p><p class="small">Las líneas doradas muestran dónde se encuentran: el migrante llega al conector, el conector asigna recursos de la oferta, y el administrador crea a los conectores.</p><p class="small">Clic en cualquier nodo para ver su camino hasta la raíz.</p>'}
+tsvg.onclick=e=>{if(e.target===tsvg)allT()};allT();
+</script>
+</body>
+</html>
