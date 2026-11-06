@@ -61,9 +61,9 @@ nav.top .links a{text-decoration:none}nav.top .links a:hover{color:var(--ink)}
 .brand .lg-g em{width:1px;height:20px;background:var(--line);display:block}
 .brand .lg-a{display:none}
 .brand .lg-a b{font:700 22px var(--head);letter-spacing:.04em}
-.brand .lg-a small{font-size:11px;color:var(--muted);align-self:flex-end;margin-bottom:3px}
+.brand .lg-a small{display:none;font-size:11px;color:var(--muted);align-self:flex-end;margin-bottom:3px}
 [data-capa="a"] .brand .lg-g{display:none}[data-capa="a"] .brand .lg-a{display:flex}
-@media(max-width:560px){.brand .lg-g b,.brand .lg-a small{display:none}}
+@media(max-width:560px){.brand .lg-g b,.brand .lg-a small{display:none;display:none}}
 
 /* hero: escena fija mientras se anima el scroll */
 #hero{height:230vh;position:relative}
@@ -81,8 +81,9 @@ nav.top .links a{text-decoration:none}nav.top .links a:hover{color:var(--ink)}
 /* problema: tres frases que se encienden con el scroll */
 #problema{height:300vh;position:relative}
 #problema .stick{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
-#problema .lines{max-width:900px;padding:0 20px}
-#problema .ln{font:600 clamp(28px,5vw,56px)/1.15 var(--head);opacity:.12;transform:translateY(14px);transition:opacity .5s,transform .5s;margin:0 0 18px}
+#problema .lines{max-width:900px;padding:0 20px;display:grid;justify-items:center}
+#problema .lines>.eyebrow{grid-area:1/1;align-self:start;transform:translateY(-110px)}
+#problema .ln{grid-area:1/1;align-self:center;font:600 clamp(28px,5vw,56px)/1.15 var(--head);opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;margin:0 0 18px}
 #problema .ln.on{opacity:1;transform:none}
 #problema .ln.last.on{color:var(--accent2)}
 #problema .eyebrow{display:block;margin-bottom:26px}
@@ -194,7 +195,10 @@ nav.top .links a{text-decoration:none}nav.top .links a:hover{color:var(--ink)}
 .ui .hd b{font:700 19px var(--head)}
 .ui .hd small{color:var(--muted);margin-left:auto;font-size:12px}
 .rowx{margin:8px 0;border:1.5px solid var(--accent);border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.ui .row:has(+ .rowx){border-bottom:0}
 .ui .rowx .row{border-bottom:0;padding:14px 16px}
+.sbtn{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:11px 14px;background:var(--accent);color:var(--on-accent);font:600 14.5px var(--base);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.sbtn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px var(--accent)}
 .start{padding:12px 16px 14px;background:color-mix(in srgb,var(--accent) 12%,transparent);border-top:1px dashed color-mix(in srgb,var(--accent) 45%,transparent);font-size:14.5px}
 .start b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:4px}
 @media(max-width:900px){#programa .pg{grid-template-columns:1fr;gap:28px}}
@@ -213,6 +217,7 @@ nav.top .links a{text-decoration:none}nav.top .links a:hover{color:var(--ink)}
 .log .li{font-size:14.5px;padding:14px 0}
 
 
+.ui .mini.sec{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
 /* ===== panel como app ===== */
 .scene.reg{overflow:hidden}
 .scene.reg>.rh,.scene.reg>.fld,.scene.reg>.cb,.scene.reg>.helper,.scene.reg>.cta{transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
@@ -467,7 +472,7 @@ footer{padding:26px 20px;border-top:1px solid var(--line);font-size:13px;color:v
 .rv.on{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .rv,.scene,.steps .st,.log .li,#problema .ln{transition:none;opacity:1;transform:none}
+  .rv,.scene,.steps .st,.log .li,#problema .ln{grid-area:1/1;align-self:center;transition:none;opacity:1;transform:none}
   .meter i{transition:none}
 }
 </style>
@@ -530,8 +535,9 @@ footer{padding:26px 20px;border-top:1px solid var(--line);font-size:13px;color:v
       <div class="mini" data-i="w_can"></div>
       <div class="row"><span data-i="w3"></span><span class="tag ok" data-i="m_fit"></span></div>
       <div class="rowx"><div class="row"><span data-i="w4"></span><span class="tag warn" data-i="m_req"></span></div>
-      <div class="start"><b data-i="w_start"></b><span data-i="w_st"></span></div></div>
-      <div class="row" style="border:0;padding-bottom:0"><span data-i="w_data"></span><span class="pct" data-i="w_datav"></span></div>
+      <div class="start"><b data-i="w_start"></b><span data-i="w_st"></span><button class="sbtn" type="button" data-i="w_btn"></button></div></div>
+      <div class="mini sec" data-i="w_data"></div>
+      <div class="row" style="border-bottom:0"><span data-i="l1"></span><span class="pct" data-i="l1d"></span></div>
     </div>
   </div>
 </section>
@@ -722,7 +728,7 @@ const L={es:{
 g:{
 n1:'El problema',n2:'Cómo funciona',n3:'Para quién',n4:'Confianza',n5:'Capas',n6:'Sin duplicados',app_name:'Brújula Ciudadana',app_sub:'Mi espacio',tb1:'Inicio',tb2:'Programas',tb3:'Mis datos',m_why1:'Cumples ingresos y residencia',m_why2:'Sin requisitos previos',m_why3:'Falta comprobante de domicilio',m_24:'Urgente · 24 h',sp1:'Enviada',sp2:'En revisión',sp3:'Aprobada',u_sub:'Cada entrega se acredita y se consulta antes de repetir',s_ok:'✓ Acreditada',s_av:'Disponible',pA2:'Cena',pB2:'Cena',s_no:'✕ Bloqueada',s_lbl:'Almuerzo ya cubierto',n7:'Mi programa',wk:'La pregunta de toda persona',wh:'¿Cuál es mi programa?',
 wp:'Hoy casi nadie lo sabe. Brújula Ciudadana lo responde en una sola pantalla: en qué programas está la persona, cuáles puede pedir y por dónde empezar. Sin ir de ventanilla en ventanilla.',
-w_in:'Estás en',w1:'Ayuda al alquiler',w2:'Taller de empleo',w_can:'Puedes pedir',w3:'Beca de formación',w4:'Banco de alimentos',w_start:'Empieza por aquí',w_st:'Sube tu comprobante de domicilio y podrás pedir el banco de alimentos.',w_data:'Quién vio tus datos',w_datav:'2 organizaciones · hoy',
+w_in:'Estás en',w1:'Ayuda al alquiler',w2:'Taller de empleo',w_can:'Puedes pedir',w3:'Beca de formación',w4:'Banco de alimentos',w_start:'Empieza por aquí',w_st:'Sube tu comprobante de domicilio y podrás pedir el banco de alimentos.',w_data:'Quién vio tus datos',w_btn:'Subir comprobante de domicilio',w_datav:'2 organizaciones · hoy',
 uk:'Sin duplicados',uh:'Una persona pasa por muchas organizaciones. Los beneficios no se cruzan.',
 c0t:'La organización A acredita el almuerzo',c0p:'A las 12:00 la persona almuerza en el comedor A. Antes de servir, A consulta el registro único: hoy no ha recibido almuerzo. Entrega y acredita.',
 c1t:'La organización B no puede repetirlo',c1p:'A las 12:30 llega a otro comedor. El sistema responde «almuerzo ya cubierto hoy». B solo ve eso: no dónde comió ni qué más recibe.',
@@ -774,7 +780,7 @@ json:{cliente:'tu-organizacion',vocab:{persona:'Persona',gestor:'Gestor',program
 a:{
 app_name:'AVIVLA',app_sub:'Mi expediente',m_id:'Expediente abierto por su conector, con consentimiento',k2:'Habitación compartida',k3:'Sin permiso de trabajo',k4:'Sin tarjeta sanitaria',k5:'Universitaria',r_t:'Abrir expediente',r_s:'Una sola vez. Con consentimiento LOPD.',r_v2:'+34 600 123 456',r_v3:'Árabe · WhatsApp',r_g:'Expediente abierto por su conector',r_btn:'Abrir expediente',r_done:'✓ Expediente abierto',r_id:'Bienvenida. Ya puedes ver tus recursos.',tb2:'Recursos',m_why1:'Sin requisitos previos',m_why2:'Plaza disponible',m_why3:'Falta certificado de empadronamiento',wk:'La pregunta de toda persona migrante',wh:'¿Cuáles son mis recursos?',
 wp:'Hoy casi nadie lo sabe. AVIVLA lo responde en una sola pantalla: en qué recursos está la persona, cuáles puede pedir y por dónde empezar. Sin ir de ventanilla en ventanilla.',
-w1:'Comedor social',w2:'Curso de español',w3:'Albergue',w_st:'Tu conector te ayuda con el documento que falta para pedir el banco de alimentos.',w_datav:'2 entidades · hoy',
+w1:'Comedor social',w2:'Curso de español',w3:'Albergue',w_st:'Tu conector te ayuda con el documento que falta para pedir el banco de alimentos.',w_btn:'Hablar con mi conector',w_datav:'2 entidades · hoy',
 uh:'Una persona migrante pasa por muchas entidades. Los recursos no se cruzan.',
 c0t:'La entidad A acredita el almuerzo',c1t:'La entidad B no puede repetirlo',c1p:'A las 12:30 llega a otro comedor social. El sistema responde «almuerzo ya cubierto hoy». La entidad B solo ve eso: no dónde comió ni qué más recibe.',
 c3p:'La regla es un almuerzo y una cena al día. Es otra franja: la persona vuelve al comedor B, cena y queda acreditado.',c4p:'Cada capa fija sus topes, aquí según los derechos, y el sistema los hace cumplir entre todas las entidades, sin que ninguna vea lo de las demás.',
@@ -803,7 +809,7 @@ q3t:'Conectores',q3p:'Profesionales o voluntarios: puerta de entrada que acompa�
 q4t:'Personas migrantes',q4p:'Saben en qué recursos están y quién ha visto sus datos.',
 kh:'AVIVLA es una capa.',
 kp:'AVIVLA cambia el vocabulario (conector, entidad, recurso, Mapa de Vida), las categorías (los derechos) y las reglas. El software base sigue siendo el mismo.',
-eh:'Que ninguna persona migrante tenga que adivinar por dónde empezar.',ep:'AVIVLA: la primera capa sobre Brújula Ciudadana.',
+eh:'Que ninguna persona migrante tenga que adivinar por dónde empezar.',ep:'AVIVLA reúne a entidades, recursos y personas migrantes en España para que cada persona sepa qué tiene, a dónde ir y por dónde empezar.',
 foot:'AVIVLA sobre Brújula Ciudadana. La marca AVIVLA es provisional: los insumos no traen logo. Borrador en desarrollo.',
 hl:1,
 json:{cliente:'avivla',vocab:{persona:'Beneficiario',gestor:'Conector',programa:'Recurso',evaluacion:'Mapa de Vida'},categorias:['vivienda','ingresos','alimentacion','salud','educacion'],reglas:{modosAcceso:['libre','inscripcion','solicitud','externo'],plazos:{urgente:'24h',normal:'5dHabiles'},casoProtegido:true,topes:[{derecho:'alimentacion',max:1,por:'dia'},{derecho:'vivienda',max:1,por:'mes'}],sinSolapeHorario:true}}
@@ -879,7 +885,7 @@ const prob=document.getElementById('problema'),lns=[...prob.querySelectorAll('.l
 const dots=document.getElementById('dots');
 for(let i=0;i<26;i++){const b=document.createElement('b');b.style.left=rnd()*100+'%';b.style.top=rnd()*100+'%';b.dataset.s=(rnd()*2-1).toFixed(2);dots.appendChild(b)}
 function probScroll(){const r=prob.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(prob.offsetHeight-innerHeight)));
-  lns.forEach((l,i)=>l.classList.toggle('on',p>(i+.35)/3.2));
+  const ix=Math.min(2,Math.floor(p*3));lns.forEach((l,i)=>l.classList.toggle('on',i===ix));
   dots.querySelectorAll('b').forEach(b=>{b.style.transform=`translateY(${p*160*b.dataset.s}px)`;b.style.opacity=.1+(1-p)*.2})}
 
 /* ---------- historia: panel fijo que cambia con el paso activo ---------- */
